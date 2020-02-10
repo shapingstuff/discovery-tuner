@@ -56,3 +56,13 @@ while True:
     if position_y > canvas_dimensions[1]:
         position_y = 0
     print(str(position_x)+" , "+str(position_y)) 
+
+    index=0
+    for x in zones:
+        index=index+1
+        c = math.sqrt((x.x-position_x)*(x.x-position_x) + (x.x-position_y)*(x.x-position_y))
+        if c <= zone_size:
+            p = c/zone_size*100
+            p = int(100-p)
+            print("Zone "+str(index)+" active at "+str(p)+" %")
+            
