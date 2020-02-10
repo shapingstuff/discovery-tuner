@@ -6,6 +6,12 @@ import math
 import time
 import random
 
+zone_size=50
+canvas_dimensions=(800,600)
+zones=[]
+position_y = canvas_dimensions[0]/2 
+position_x = canvas_dimensions[1]/2
+
 #radio stations
 radiourl = [
     'http://ice6.somafm.com/groovesalad-16-aac',
@@ -31,10 +37,22 @@ class Zone:
         self.y = y
         self.size = size
 
-zone_size=50
-canvas_dimensions=(800,600)
-zones=[]
+#create zones for each url added
+for x in radiourl:
+    rndCor = (random.randint(zone_size/2, canvas_dimensions[0]), random.randint(zone_size/2, canvas_dimensions[1]))
+    zones.append(Zone(rndCor[0],rndCor[1],zone_size))
 
 while True:
     x,y = read_mouse()
-    print(str(x)+" , "+str(y))
+    #print(str(x)+" , "+str(y))
+    position_x = position_x+x
+    position_y = position_y+y
+    if position_x < 0:
+        position_x = canvas_dimensions[0]
+    if position_x > canvas_dimensions[0]:
+        position_x = 0
+    if position_y < 0:
+        position_y = canvas_dimensions[1]
+    if position_y > canvas_dimensions[1]:
+        position_y = 0
+    print(str(position_x)+" , "+str(position_y)) 
