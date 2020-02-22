@@ -35,8 +35,9 @@ play =[]
 for x in radiourl:
     play.append(0)
 
+f = open("/dev/input/mice", "rb" )
+
 def read_mouse():
-    f = open( "/dev/input/mice", "rb" )
     while 1:
         data = f.read(3)  # Reads the 3 bytes
         identity,x,y = struct.unpack('3b',data)  #Unpacks the bytes to integers
@@ -67,26 +68,29 @@ while True:
         position_y = canvas_dimensions[1]
     if position_y > canvas_dimensions[1]:
         position_y = 0
-    print(str(position_x)+" , "+str(position_y)) 
+    #print(str(position_x)+" , "+str(position_y)) 
 
     index=0
     for x in zones:
-        c = math.sqrt((x.x-position_x)*(x.x-position_x) + (x.x-position_y)*(x.x-position_y))
+        c = math.sqrt((x.x-position_x)*(x.x-position_x) + (x.y-position_y)*(x.y-position_y))
         if c <= zone_size:
             p = c/zone_size*100
             p = int(100-p)
-            print("Zone "+str(index)+" active at "+str(p)+" %")
-            players[index].audio_set_volume(p)
+            print("--Zone-- "+str(index)+" active at "+str(p)+" %")
+            #players[index].audio_set_volume(p)
             if play[index]==0:
-                print("playing" + str(index))
-                play[index]=1
-                print(radiourl[index])
-                media=instance.media_new(radiourl[index])
+                print("--playing-- " + str(index))
+                #print(radiourl[index])
+                #media=instance.media_new(radiourl[index])
                 #Set player media
-                players[index].set_media(media)
+                #players[index].set_media(media)
                 #Play the media
-                players[index].play()
+                #print("Playing")
+                #players[index].play()
+                play[index]=1
         else:
+            print("--stopping--" + str(index))
             play[index]=0
-            players[index].stop()
+            #players[index].stop()
+        print(str(index))
         index = index+1
