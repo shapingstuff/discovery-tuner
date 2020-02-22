@@ -25,19 +25,26 @@ radiourl = [
     ]
 
 #vlc
-instance=vlc.Instance('--input-repeat=-1')
-players = []
-for x in radiourl:
+instances=[]
+for url in radiourl:
+    instances.append(vlc.Instance('--input-repeat=-1'))
+
+players=[]
+media=[]
+index=0
+for instance in instances:
     players.append(instance.media_player_new())
+    media.append(instance.media_new(radiourl[index]))
+    index=index+1
 
-#set all players to off
-play =[]
-for x in radiourl:
-    play.append(0)
+index=0
+for player in players:
+    player.set_media(media[index])
+    index=index+1
 
-f = open("/dev/input/mice", "rb" )
-
+#mouse
 def read_mouse():
+    f=open("/dev/input/mice", "rb" )
     while 1:
         data = f.read(3)  # Reads the 3 bytes
         identity,x,y = struct.unpack('3b',data)  #Unpacks the bytes to integers
@@ -55,6 +62,8 @@ for x in radiourl:
     rndCor = (random.randint(zone_size/2, canvas_dimensions[0]), random.randint(zone_size/2, canvas_dimensions[1]))
     zones.append(Zone(rndCor[0],rndCor[1],zone_size))
 
+Playing = 3
+
 while True:
     x,y = read_mouse()
     #print(str(x)+" , "+str(y))
@@ -68,7 +77,7 @@ while True:
         position_y = canvas_dimensions[1]
     if position_y > canvas_dimensions[1]:
         position_y = 0
-    #print(str(position_x)+" , "+str(position_y)) 
+    print(str(position_x)+" , "+str(position_y)) 
 
     index=0
     for x in zones:
@@ -76,21 +85,11 @@ while True:
         if c <= zone_size:
             p = c/zone_size*100
             p = int(100-p)
-            print("--Zone-- "+str(index)+" active at "+str(p)+" %")
-            #players[index].audio_set_volume(p)
-            if play[index]==0:
-                print("--playing-- " + str(index))
-                #print(radiourl[index])
-                #media=instance.media_new(radiourl[index])
-                #Set player media
-                #players[index].set_media(media)
-                #Play the media
-                #print("Playing")
-                #players[index].play()
-                play[index]=1
+            print("--zone-- "+str(index)+" active at "+str(p)+" %")
+            if players[index].get_state() != Playing:
+                print("playing...")
+                players[index].play()
+                time.sleep(1)
         else:
-            print("--stopping--" + str(index))
-            play[index]=0
-            #players[index].stop()
-        print(str(index))
-        index = index+1
+            players[index].stop()
+        index=index+1
