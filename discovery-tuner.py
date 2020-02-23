@@ -7,6 +7,17 @@ import time
 import random
 import vlc
 
+#vlc states
+NothingSpecial=0
+Opening=1
+Buffering=2
+Playing=3
+Paused=4
+Stopped=5
+Ended=6
+
+mouse_speed = 0.5
+
 zone_size=50
 canvas_dimensions=(800,600)
 zones=[]
@@ -62,13 +73,11 @@ for x in radiourl:
     rndCor = (random.randint(zone_size/2, canvas_dimensions[0]), random.randint(zone_size/2, canvas_dimensions[1]))
     zones.append(Zone(rndCor[0],rndCor[1],zone_size))
 
-Playing = 3
-
 while True:
     x,y = read_mouse()
     #print(str(x)+" , "+str(y))
-    position_x = position_x+x
-    position_y = position_y+y
+    position_x = position_x+(int(0.5*x))
+    position_y = position_y+(int(0.5*y))
     if position_x < 0:
         position_x = canvas_dimensions[0]
     if position_x > canvas_dimensions[0]:
@@ -88,9 +97,16 @@ while True:
             players[index].audio_set_volume(p)
             print("--zone-- "+str(index)+" active at "+str(p)+" %")
             if players[index].get_state() != Playing:
-                print("playing...")
+                #print("playing...")
                 players[index].play()
-                time.sleep(1)
+                pState = 0
+                cState = players[index].get_state()
+                while cState != Playing:
+                    cState = players[index].get_state()
+                    if cState != pState:
+                        print(cState)
+                    pState = cState
+                    #add timeout
         else:
             players[index].stop()
         index=index+1
