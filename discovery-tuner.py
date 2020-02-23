@@ -85,6 +85,7 @@ while True:
         if c <= zone_size:
             p = c/zone_size*100
             p = int(100-p)
+            players[index].audio_set_volume(p)
             print("--zone-- "+str(index)+" active at "+str(p)+" %")
             if players[index].get_state() != Playing:
                 print("playing...")
