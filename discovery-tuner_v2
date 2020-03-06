@@ -31,6 +31,7 @@ import math
 import vlc
 import time
 import random
+from gpiozero import LED
 
 width=1600
 height=1200
@@ -45,6 +46,13 @@ min_vol=5
 #starting coodrinates
 position_y=height/2 
 position_x=width/2
+
+#test the light at startup
+light =LED(21)
+light.off() # on and off reversed
+time.sleep(5)
+light.on()
+time.sleep(5)
 
 class circle():
     def __init__(self, size, fade):
@@ -127,9 +135,11 @@ while True:
                     pState=cState
         if c < t_size:
             print("-- tuned "+str(i))
-            #gpio will go here
+            light.off() #ON
             #this will need to be a percentage
             players[i].audio_set_volume(max_vol)
+        else:
+            light.on() #OFF
         if c > f_size:
             print("-- out of range "+str(i))
             players[i].stop()

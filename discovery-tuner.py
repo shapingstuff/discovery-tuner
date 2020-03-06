@@ -6,6 +6,7 @@ import math
 import time
 import random
 import vlc
+from gpiozero import LED
 
 #vlc states
 NothingSpecial=0
@@ -23,6 +24,14 @@ canvas_dimensions=(800,600)
 zones=[]
 position_y = canvas_dimensions[0]/2 
 position_x = canvas_dimensions[1]/2
+
+light = LED(21)
+
+#test relay
+light.on()
+time.sleep(10)
+light.off()
+time.sleep(10)
 
 #radio stations
 radiourl = [
@@ -43,7 +52,7 @@ for url in radiourl:
 players=[]
 media=[]
 index=0
-for instance in instances:
+fo
     players.append(instance.media_player_new())
     media.append(instance.media_new(radiourl[index]))
     index=index+1
