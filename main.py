@@ -33,8 +33,8 @@ import time
 import random
 from gpiozero import LED
 
-width=1600
-height=1200
+width=800
+height=600
 mouse_speed=0.5
 t_size=50#tuned zone size
 f_size=100 #fade in overlap size
@@ -49,10 +49,9 @@ position_x=width/2
 
 #test the light at startup
 light =LED(21)
-light.off() # on and off reversed
+light.off()
 time.sleep(5)
 light.on()
-time.sleep(5)
 
 class circle():
     def __init__(self, size, fade):
@@ -99,6 +98,8 @@ while len(t_zones) < circle_num:
 for zone in t_zones:
     print(str(zone.x)+" , "+str(zone.y)+" , "+str(zone.r))
 
+tuned = None
+
 while True:
     x,y = read_mouse()
     #print(str(x)+" , "+str(y))
@@ -135,12 +136,14 @@ while True:
                     pState=cState
         if c < t_size:
             print("-- tuned "+str(i))
-            light.off() #ON
+            light.off()
+            tuned = i
             #this will need to be a percentage
             players[i].audio_set_volume(max_vol)
-        else:
-            light.on() #OFF
         if c > f_size:
             print("-- out of range "+str(i))
             players[i].stop()
+            if i == tuned:
+                light.on()
+                tuned = None
         i=i+1              
