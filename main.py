@@ -33,16 +33,19 @@ import time
 import random
 from gpiozero import LED
 
-width=800
-height=600
+width=400
+height=300
 mouse_speed=1 #was 0.5
-t_size=50#tuned zone size
-f_size=100 #fade in overlap size
+t_size=30#tuned zone size
+f_size=50#fade in overlap size
 mouse_speed=0.5 #mouse speed factor
 circle_num=len(radiourl)
-max_vol=100
-mid_vol=20
-min_vol=5
+max_vol=70
+min_vol=10
+
+#tuned percentage
+tuned=(t_size/f_size)*100 #percentage to centre that is tuned
+print("Tuned at "+str(tuned))
 
 #starting coodrinates
 position_y=height/2 
@@ -117,31 +120,31 @@ while True:
         position_y = height
     if position_y > height:
         position_y = 0
-    #print(str(position_x)+" , "+str(position_y)) 
+    print(str(position_x)+" , "+str(position_y)) 
     
+    tuned_to=None
     i=0
     #override everything else if tuned   
     for zone in t_zones:
         c=math.sqrt((zone.x-position_x)*(zone.x-position_x)+(zone.y-position_y)*(zone.y-position_y))
-        if c<t_size:
-            x=0
-            for u in playlist:
-                if x is i:
-                    playlist[x]=(1,max_vol)
-                    print("-- Tuned "+str(x)+" --")
-                    light.off() # ON
-                else:
-                    playlist[x]=(0,0)
-                x=x+1
-            break #don't do anything else because tuned
-        if c < f_size and c > t_size:
-            v = c/f_size*40
-            v = int(40-v)
-            print(v)
+        if c<f_size:
+            v=c/f_size*100
+            v=100-v
+            print("-- Zone "+str(i)+" at "+str(v)+" --")
             playlist[i]=(1,v)
-        if c > f_size:
+            if v>tuned: #above the threshold volume
+                print("-- Tuned "+str(i)+" at "+str(v)+" --")
+                playlist[i]=(1,max_vol)
+                light.on()
+                tuned_to=i
+        else:
             playlist[i]=(0,0)
         i=i+1
+
+    if tuned_to is not None:
+        light.off()# ON
+    else:
+        light.on()# OFF
 
     s=0
     i=0
@@ -150,7 +153,7 @@ while True:
         if u[0] is 1: #is it meant to be playing
             if players[i].get_state() != Playing:
                 print("-- playing "+str(i)+" --")
-                players[i].audio_set_volume(u[1])
+                players[i].audio_set_volume(int(u[1]))
                 players[i].play()
                 pState=0
                 cState=players[i].get_state()
@@ -161,7 +164,7 @@ while True:
                         print(cState)
                     pState=cState
             else: #just set volume if already playing
-                players[i].audio_set_volume(u[1])
+                players[i].audio_set_volume(int(u[1]))
         else: #stop if not meant to be playing
             players[i].stop()
         i=i+1
