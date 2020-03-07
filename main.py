@@ -51,7 +51,7 @@ position_x=width/2
 #test the light at startup
 light =LED(21)
 light.off()
-time.sleep(5)
+time.sleep(1)
 light.on()
 
 class circle():
@@ -60,6 +60,11 @@ class circle():
         self.y = random.randint(0+(t_size),height-(t_size))
         self.r = size
         self.f = fade
+
+#what to play as a tuple of play/stop and volume
+playlist=[]
+for url in radiourl:
+    playlist.append((0,0))
 
 #vlc
 instances=[]
@@ -99,9 +104,6 @@ while len(t_zones) < circle_num:
 for zone in t_zones:
     print(str(zone.x)+" , "+str(zone.y)+" , "+str(zone.r))
 
-tuned = None
-play = []
-
 while True:
     x,y = read_mouse()
     #print(str(x)+" , "+str(y))
@@ -118,54 +120,36 @@ while True:
     print(str(position_x)+" , "+str(position_y)) 
     
     i=0
-    tuned = None
-
-    # check first to see if anything is tuned
-    # only possible to have one tuned at a time
     for zone in t_zones:
         c=math.sqrt((zone.x-position_x)*(zone.x-position_x)+(zone.y-position_y)*(zone.y-position_y))
         if c<t_size:
-            tuned=i
+            playlist[i]=(1,max_vol)
+            light.off() # ON
             break
         else:
-            tuned=None
+            playlist[i]=(0,0)
+            light.on() # OFF
         i=i+1              
     
-    #print(tuned)
-
-    #empty list and then set which players to play
-    play.clear()
-
-    for x in play:
-        print(x)
-
-    if tuned is not None:
-        print("-- tuned "+str(i)+" --")
-        light.off() # ON
-        play.append(tuned)
-    else:
-        print("-- not tuned --")
-        light.on() # OFF
-
     s=0
-    #set which to play if not already playing
-    #next time put the player into an array
-    if len(play) is not 0:
-        for p in play:
-            if players[p].get_state() != Playing:
-                print("-- playing "+str(p)+" --")
-                players[p].audio_set_volume(max_vol)
-                players[p].play()
+    i=0
+    #plays and sets the volume based on playlist
+    for u in playlist:
+        if u[0] is 1: #is it meant to be playing
+            if players[i].get_state() != Playing:
+                print("-- playing "+str(i)+" --")
+                players[i].audio_set_volume(u[1])
+                players[i].play()
                 pState=0
-                cState=players[p].get_state()
+                cState=players[i].get_state()
                 #wait until playing
                 while cState != Playing:
-                    cState=players[p].get_state()
+                    cState=players[i].get_state()
                     if cState != pState:
                         print(cState)
                     pState=cState
-    else:
-        print("stop all")
-        for p in players:
-            players[s].stop()
-            s=s+1
+            else: #just set volume if already playing
+                players[i].audio_set_volume(u[1])
+        else: #stop if not meant to be playing
+            players[i].stop()
+        i=i+1
