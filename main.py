@@ -35,12 +35,13 @@ from gpiozero import LED
 
 width=800
 height=600
-mouse_speed=0.5
+mouse_speed=1 #was 0.5
 t_size=50#tuned zone size
 f_size=100 #fade in overlap size
 mouse_speed=0.5 #mouse speed factor
 circle_num=len(radiourl)
-max_vol=70
+max_vol=100
+mid_vol=20
 min_vol=5
 
 #starting coodrinates
@@ -99,6 +100,7 @@ for zone in t_zones:
     print(str(zone.x)+" , "+str(zone.y)+" , "+str(zone.r))
 
 tuned = None
+play = []
 
 while True:
     x,y = read_mouse()
@@ -116,34 +118,54 @@ while True:
     print(str(position_x)+" , "+str(position_y)) 
     
     i=0
+    tuned = None
+
+    # check first to see if anything is tuned
+    # only possible to have one tuned at a time
     for zone in t_zones:
-        print("----------------------")
-        c = math.sqrt((zone.x-position_x)*(zone.x-position_x) + (zone.y-position_y)*(zone.y-position_y))
-        if c < f_size and c > t_size:
-            p = c/f_size*100
-            p = int(100-p)
-            if players[i].get_state() != Playing:
-                print("-- playing "+str(i)+" at "+str(p))
-                players[i].audio_set_volume(p)
-                players[i].play()
+        c=math.sqrt((zone.x-position_x)*(zone.x-position_x)+(zone.y-position_y)*(zone.y-position_y))
+        if c<t_size:
+            tuned=i
+            break
+        else:
+            tuned=None
+        i=i+1              
+    
+    #print(tuned)
+
+    #empty list and then set which players to play
+    play.clear()
+
+    for x in play:
+        print(x)
+
+    if tuned is not None:
+        print("-- tuned "+str(i)+" --")
+        light.off() # ON
+        play.append(tuned)
+    else:
+        print("-- not tuned --")
+        light.on() # OFF
+
+    s=0
+    #set which to play if not already playing
+    #next time put the player into an array
+    if len(play) is not 0:
+        for p in play:
+            if players[p].get_state() != Playing:
+                print("-- playing "+str(p)+" --")
+                players[p].audio_set_volume(max_vol)
+                players[p].play()
                 pState=0
-                cState=players[i].get_state()
+                cState=players[p].get_state()
                 #wait until playing
                 while cState != Playing:
-                    cState=players[i].get_state()
+                    cState=players[p].get_state()
                     if cState != pState:
                         print(cState)
                     pState=cState
-        if c < t_size:
-            print("-- tuned "+str(i))
-            light.off()
-            tuned = i
-            #this will need to be a percentage
-            players[i].audio_set_volume(max_vol)
-        if c > f_size:
-            print("-- out of range "+str(i))
-            players[i].stop()
-            if i == tuned:
-                light.on()
-                tuned = None
-        i=i+1              
+    else:
+        print("stop all")
+        for p in players:
+            players[s].stop()
+            s=s+1
