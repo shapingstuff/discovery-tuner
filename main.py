@@ -117,20 +117,32 @@ while True:
         position_y = height
     if position_y > height:
         position_y = 0
-    print(str(position_x)+" , "+str(position_y)) 
+    #print(str(position_x)+" , "+str(position_y)) 
     
     i=0
+    #override everything else if tuned   
     for zone in t_zones:
         c=math.sqrt((zone.x-position_x)*(zone.x-position_x)+(zone.y-position_y)*(zone.y-position_y))
         if c<t_size:
-            playlist[i]=(1,max_vol)
-            light.off() # ON
-            break
-        else:
+            x=0
+            for u in playlist:
+                if x is i:
+                    playlist[x]=(1,max_vol)
+                    print("-- Tuned "+str(x)+" --")
+                    light.off() # ON
+                else:
+                    playlist[x]=(0,0)
+                x=x+1
+            break #don't do anything else because tuned
+        if c < f_size and c > t_size:
+            v = c/f_size*40
+            v = int(40-v)
+            print(v)
+            playlist[i]=(1,v)
+        if c > f_size:
             playlist[i]=(0,0)
-            light.on() # OFF
-        i=i+1              
-    
+        i=i+1
+
     s=0
     i=0
     #plays and sets the volume based on playlist
