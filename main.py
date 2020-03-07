@@ -42,10 +42,11 @@ mouse_speed=0.5 #mouse speed factor
 circle_num=len(radiourl)
 max_vol=70
 min_vol=10
+fade=20
 
 #tuned percentage
-tuned=(t_size/f_size)*100 #percentage to centre that is tuned
-print("Tuned at "+str(tuned))
+#tuned=(t_size/f_size)*100 #percentage to centre that is tuned
+#print("Tuned at "+str(tuned))
 
 #starting coodrinates
 position_y=height/2 
@@ -53,9 +54,9 @@ position_x=width/2
 
 #test the light at startup
 light =LED(21)
-light.off()
-time.sleep(1)
-light.on()
+#light.off()
+#time.sleep(1)
+#light.on()
 
 class circle():
     def __init__(self, size, fade):
@@ -93,10 +94,13 @@ def read_mouse():
         identity,x,y = struct.unpack('3b',data)  #Unpacks the bytes to integers
         return x,y
         
+def map(x, in_min, in_max, out_min, out_max):
+    return int((x-in_min) * (out_max-out_min) / (in_max-in_min) + out_min)
+
 #create non-intersecting zones that represent tuned to 100%
 t_zones=[]
 while len(t_zones) < circle_num:
-    new = circle(t_size, f_size)
+    new = circle(t_size, fade)
     if any(pow(c.r - new.r, 2) <=
            pow(c.x - new.x, 2) + pow(c.y - new.y, 2) <=
            pow(c.r + new.r, 2)
@@ -127,16 +131,18 @@ while True:
     #override everything else if tuned   
     for zone in t_zones:
         c=math.sqrt((zone.x-position_x)*(zone.x-position_x)+(zone.y-position_y)*(zone.y-position_y))
-        if c<f_size:
-            v=c/f_size*100
+        if c<t_size:
+            v=int(c/t_size*100) # percentage distance to centre
             v=100-v
-            print("-- Zone "+str(i)+" at "+str(v)+" --")
-            playlist[i]=(1,v)
-            if v>tuned: #above the threshold volume
-                print("-- Tuned "+str(i)+" at "+str(v)+" --")
-                playlist[i]=(1,max_vol)
-                light.on()
+            print("-- In zone "+str(i)+" at "+str(v)+"% to middle --")
+            if v<fade:
+                vol=map(v,0,fade,min_vol,max_vol)
+                print("-- Fade "+str(vol)+"% volume --")
+            else:
+                print("-- Tuned to "+str(i)+" --")
+                vol=max_vol
                 tuned_to=i
+            playlist[i]=(1,vol)
         else:
             playlist[i]=(0,0)
         i=i+1
